@@ -15,7 +15,7 @@ const bcrypt = require('bcrypt')
 const { User } = require("./model/userSchema");
 
 //Helping Functions
-const { validateSignUp } = require("./lib/utils.js");
+const { validateSignUp, validateLogin } = require("./lib/utils.js");
 
 const PORT = process.env.PORT;
 
@@ -33,9 +33,9 @@ app.post("/signup", async (req, res) => {
 
     const { name, email, password } = req.body;
 
-    const checkUserEmail = await User.findOne({ email });
+    const user = await User.findOne({ email });
 
-    if (checkUserEmail) {
+    if (user) {
       throw new Error("User Already Exists With This Email!");
     }
 
@@ -56,6 +56,34 @@ app.post("/signup", async (req, res) => {
     res.status(400).send({ message: "Bad Request", error: error.message });
   }
 });
+
+app.post('/login',async(req,res)=>{
+  try {
+    validateLogin(req)
+    
+    const {email,password} = req.body
+
+    //Checking By Email
+    const user = await User.findOne({email})
+
+    if(!user){
+      throw new Error("Invalid Credentials")
+    }
+    
+    //if Email Matches Only Then We Will Check Password 
+    
+    const isPasswordMatch = await bcrypt.compare(password,user.password)
+    
+    if(!isPasswordMatch){
+      throw new Error("Invalid Credentials")
+    }
+    
+
+    res.status(200).send({message:"Login Successfully!" ,user})
+  } catch (error) {
+    res.status(400).send({message:"Bad Request!",error:error.message})
+  }
+})
 
 connectDb()
   .then(() => {
