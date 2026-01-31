@@ -3,13 +3,18 @@ const dotenv = require("dotenv");
 
 dotenv.config();
 
+//Cookie Parser
+const cookieParser = require("cookie-parser");
+const jwt = require("jsonwebtoken");
+
 const app = express();
 app.use(express.json());
+app.use(cookieParser());
 
 const { connectDb } = require("./config/database");
 
-//Bcrypt 
-const bcrypt = require('bcrypt')
+//Bcrypt
+const bcrypt = require("bcrypt");
 
 //Schemas
 const { User } = require("./model/userSchema");
@@ -25,7 +30,7 @@ app.get("/", (req, res) => {
 
 app.post("/signup", async (req, res) => {
   try {
-    //First I have Created Another Helping Function To Validate This On API Level
+    //First I have Created Another Helping Function To Validate Signup On API Level
 
     validateSignUp(req);
 
@@ -41,49 +46,70 @@ app.post("/signup", async (req, res) => {
 
     //Now Hashing Password Is Required
 
-    const hashedPassword = await bcrypt.hash(password,10)
-    
+    const hashedPassword = await bcrypt.hash(password, 10);
 
     const newUser = await User({
       name,
       email,
-      password:hashedPassword,
+      password: hashedPassword,
     });
 
     await newUser.save();
-    res.status(201).send({ message: "SignUp Successfully", newUser});
+    res.status(201).send({ message: "SignUp Successfully", newUser });
   } catch (error) {
     res.status(400).send({ message: "Bad Request", error: error.message });
   }
 });
 
-app.post('/login',async(req,res)=>{
+app.post("/login", async (req, res) => {
   try {
-    validateLogin(req)
-    
-    const {email,password} = req.body
+    validateLogin(req);
+
+    const { email, password } = req.body;
 
     //Checking By Email
-    const user = await User.findOne({email})
+    const user = await User.findOne({ email });
 
-    if(!user){
-      throw new Error("Invalid Credentials")
+    if (!user) {
+      throw new Error("Invalid Credentials");
     }
-    
-    //if Email Matches Only Then We Will Check Password 
-    
-    const isPasswordMatch = await bcrypt.compare(password,user.password)
-    
-    if(!isPasswordMatch){
-      throw new Error("Invalid Credentials")
-    }
-    
 
-    res.status(200).send({message:"Login Successfully!" ,user})
+    //if Email Matches Only Then We Will Check Password
+
+    const isPasswordMatch = await bcrypt.compare(password, user.password);
+
+    if (!isPasswordMatch) {
+      throw new Error("Invalid Credentials");
+    }
+
+    //Now We Will Generate JWT Token
+
+    const token = jwt.sign({ _id: user._id }, process.env.JWT_SECRET, {
+      expiresIn: "1d",
+    });
+
+    //Now Store Logged In Jwt Token On Cookies
+
+    res.cookie("token", token, {
+      expires: new Date(Date.now() + 24 * 3600000), // 24 hours
+    });
+
+    res.status(200).send({ message: "Login Successfully!", user });
   } catch (error) {
-    res.status(400).send({message:"Bad Request!",error:error.message})
+    res.status(400).send({ message: "Bad Request!", error: error.message });
   }
-})
+});
+
+app.post("/logout", (req, res) => {
+  try {
+    res.cookie("token", null, {
+      expires: new Date(Date.now() * 0),
+    });
+    res.status(200).send({ message: "Logout Successfully!" });
+  } catch (error) {
+    res.status(400).send({ message: "Bad Request!", error: error.message });
+  }
+});
 
 connectDb()
   .then(() => {
