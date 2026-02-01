@@ -29,7 +29,31 @@ function validateLogin(req) {
   }
 }
 
+function validateProducts(req){
+   const { title, price, description, category, image } = req.body;
+  
+      if (!title) {
+        throw new Error("Product Title Is Required");
+      }
+      if (!price) {
+        throw new Error("Product Price Is Required");
+      }
+  
+      if (!description) {
+        throw new Error("Product Description Is Required");
+      }
+  
+      if (!category) {
+        throw new Error("Product Category Is Required");
+      }
+      if (!validator.isURL(image)) {
+        throw new Error("Image Should Be In URL Format");
+      }
+    
+}
+
 module.exports = {
   validateSignUp,
   validateLogin,
+  validateProducts
 };
