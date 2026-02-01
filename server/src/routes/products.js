@@ -41,6 +41,7 @@ router.post("/addproduct", AuthMiddleWare, async (req, res) => {
   try {
     validateProducts(req);
     const { title, price, description, category, image } = req.body;
+
     const newProduct = await Products({
       title,
       price,

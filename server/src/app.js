@@ -2,6 +2,9 @@ const express = require("express");
 const dotenv = require("dotenv");
 const authRouter = require("./routes/auth"); 
 const productRouter = require("./routes/products")
+const cors = require("cors")
+
+
 dotenv.config();
 
 //Cookie Parser
@@ -14,6 +17,12 @@ const app = express();
 app.use(express.json());
 app.use(cookieParser());
 
+app.use(
+  cors({
+    origin: "http://localhost:5173", // Allow your Vite Frontend
+    credentials: true, // Allow Cookies to be sent
+  })
+);
 
 
 
