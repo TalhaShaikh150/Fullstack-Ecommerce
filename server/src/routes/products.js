@@ -7,8 +7,20 @@ const { validateProducts } = require("../lib/utils.js");
 
 
 
+router.get('/',async (req,res)=>{
+  try {
+    
+    const allProducts = await Products.find({})
+
+    res.status(200).send({message:"Successfully Fetched All Products",allProducts})
+  } catch (error) {
+    res.status(500).send({ message: "Error fetching products", error: error.message });
+  }
+})
+
+
 //Getting Single Product By Id
-router.get("/:id", AuthMiddleWare, async (req, res) => {
+router.get("/:id", async (req, res) => {
   try {
     const { id } = req.params;
 
@@ -20,7 +32,7 @@ router.get("/:id", AuthMiddleWare, async (req, res) => {
 
     res.status(200).send(product);
   } catch (error) {
-    res.status(500).send({ message: "Error fetching product", error: error.message });
+    res.status(500).send({ message: `Error fetching product ${id}`, error: error.message });
   }
 });
 
@@ -61,7 +73,7 @@ router.patch("/:id", AuthMiddleWare, async (req, res) => {
 
     if (title) product.title = title;
     if (description) product.description = description;
-    if (price) product.price = price;
+    if (price) product.price = price; 
     if (category) product.category = category;
     if (image) product.image = image;
 
@@ -70,6 +82,24 @@ router.patch("/:id", AuthMiddleWare, async (req, res) => {
     res.status(200).send({ message: "Product Updated", product });
   } catch (error) {
     res.status(400).send({ message: "Error updating product", error: error.message });
+  }
+});
+
+//Updating Product By Id
+router.delete("/:id", AuthMiddleWare, async (req, res) => {
+  try {
+    const { id } = req.params;
+  
+    const product = await Products.findByIdAndDelete(id)
+
+    if (!product) {
+      res.status(404).send({ message: "Product not found" });
+    }
+
+
+    res.status(200).send({ message: "Product Deleted", product });
+  } catch (error) {
+    res.status(400).send({ message: "Error deleting product", error: error.message });
   }
 });
 
