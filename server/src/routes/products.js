@@ -5,6 +5,26 @@ const validator = require("validator");
 const { AuthMiddleWare } = require("../middleware/auth.js");
 const { validateProducts } = require("../lib/utils.js");
 
+
+
+//Getting Single Product By Id
+router.get("/:id", AuthMiddleWare, async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const product = await Products.findById(id);
+
+    if (!product) {
+      res.status(404).send({ message: "Product not found" });
+    }
+
+    res.status(200).send(product);
+  } catch (error) {
+    res.status(500).send({ message: "Error fetching product", error: error.message });
+  }
+});
+
+//Adding Product
 router.post("/addproduct", AuthMiddleWare, async (req, res) => {
   try {
     validateProducts(req);
@@ -25,5 +45,34 @@ router.post("/addproduct", AuthMiddleWare, async (req, res) => {
     res.status(400).send({ message: "Bad Request", error: error.message });
   }
 });
+
+//Updating Product By Id
+router.patch("/:id", AuthMiddleWare, async (req, res) => {
+  try {
+    const { id } = req.params;
+    
+    const { title, price, description, category, image } = req.body;
+
+    const product = await Products.findById(id)
+
+    if (!product) {
+      res.status(404).send({ message: "Product not found" });
+    }
+
+    if (title) product.title = title;
+    if (description) product.description = description;
+    if (price) product.price = price;
+    if (category) product.category = category;
+    if (image) product.image = image;
+
+    await product.save();
+
+    res.status(200).send({ message: "Product Updated", product });
+  } catch (error) {
+    res.status(400).send({ message: "Error updating product", error: error.message });
+  }
+});
+
+
 
 module.exports = router;
