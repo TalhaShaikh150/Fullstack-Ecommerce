@@ -3,120 +3,233 @@ import { Link, useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { useSignupMutation } from "../services/users";
 import { setCredentials } from "../services/authSlice";
-import Navbar from "../components/Navbar";
+import { Eye, EyeOff, ArrowRight, Loader2, ArrowLeft, AlertCircle, User } from "lucide-react";
+import { motion } from "framer-motion";
+
+// ✅ 1. Import Hook Form & Zod
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import * as z from "zod";
+
+// ✅ 2. Define Validation Schema
+const signupSchema = z.object({
+  name: z
+    .string()
+    .min(1, "Full Name is required")
+    .min(3, "Name must be at least 3 characters"),
+  email: z
+    .string()
+    .min(1, "Email is required")
+    .email("Please enter a valid email address"),
+  password: z
+    .string()
+    .min(1, "Password is required")
+    .min(6, "Password must be at least 6 characters")
+    .regex(/[A-Z]/, "Must contain at least one uppercase letter")
+    .regex(/[0-9]/, "Must contain at least one number"),
+});
 
 const Signup = () => {
-  const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [apiError, setApiError] = useState("");
 
   const dispatch = useDispatch();
   const navigate = useNavigate();
-
-  const [signup, { isLoading, error }] = useSignupMutation();
+  const [signup, { isLoading }] = useSignupMutation();
   const { userInfo } = useSelector((state) => state.auth);
 
+  // ✅ 3. Setup React Hook Form
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm({
+    resolver: zodResolver(signupSchema),
+    defaultValues: {
+      name: "",
+      email: "",
+      password: "",
+    },
+  });
+
   useEffect(() => {
-    if (userInfo) {
-      navigate("/");
-    }
+    if (userInfo) navigate("/");
   }, [userInfo, navigate]);
 
-  const submitHandler = async (e) => {
-    e.preventDefault();
+  // ✅ 4. Submit Handler
+  const onSubmit = async (data) => {
+    setApiError("");
+    
     try {
-      const res = await signup({ name, email, password }).unwrap();
+      const res = await signup(data).unwrap();
+      // Backend returns { newUser: ... } for signup usually
       dispatch(setCredentials({ ...res.newUser }));
       navigate("/");
     } catch (err) {
-      console.error(err);
+      console.log("Signup Error:", err);
+      // ✅ FIX: Prioritize err.data.error to avoid "Bad Request"
+      const message = 
+        err?.data?.error || 
+        err?.data?.message || 
+        "Signup failed. Please try again.";
+      setApiError(message);
     }
   };
 
   return (
-    <div className="bg-black min-h-screen text-white relative overflow-hidden">
-
-      {/* Background Ambient Glow (Adds depth) */}
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-blue-900/20 rounded-full blur-[120px] pointer-events-none"></div>
+    <div className="min-h-screen flex items-center justify-center p-4 bg-[#F3F4F6] relative overflow-hidden">
       
-      <div className="flex justify-center items-center min-h-[90vh] px-4 relative z-10">
-        <div className="w-full max-w-md p-10 border border-white/10 shadow-2xl rounded-2xl bg-[#0A0A0A] backdrop-blur-sm">
-          
-          <div className="text-center mb-10">
-            <h1 className="text-4xl font-black tracking-tighter mb-2 text-white uppercase italic">
-              Join <span className="text-transparent bg-clip-text bg-gradient-to-r from-white to-gray-500">UrbanMart.</span>
-            </h1>
-            <p className="text-gray-400 text-sm tracking-wide">Enter the future of shopping.</p>
-          </div>
-
-          {/* Error Message */}
-          {error && (
-            <div className="bg-red-900/20 border border-red-900/50 text-red-400 text-xs font-bold uppercase tracking-wide p-4 rounded mb-8 text-center">
-              {error?.data?.message || "Signup failed."}
-            </div>
-          )}
-
-          <form onSubmit={submitHandler} className="space-y-6">
-            
-            {/* Name Input */}
-            <div>
-              <label className="block text-[10px] font-bold uppercase tracking-[0.2em] text-gray-500 mb-3 ml-1">Full Name</label>
-              <input 
-                type="text" 
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                className="w-full p-4 bg-[#111] border border-white/10 rounded-lg text-white placeholder-gray-600 focus:outline-none focus:border-white focus:bg-black transition-all duration-300" 
-                placeholder="JOHN DOE"
-                required
-              />
-            </div>
-
-            {/* Email Input */}
-            <div>
-              <label className="block text-[10px] font-bold uppercase tracking-[0.2em] text-gray-500 mb-3 ml-1">Email Address</label>
-              <input 
-                type="email" 
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="w-full p-4 bg-[#111] border border-white/10 rounded-lg text-white placeholder-gray-600 focus:outline-none focus:border-white focus:bg-black transition-all duration-300" 
-                placeholder="YOU@EXAMPLE.COM"
-                required
-              />
-            </div>
-
-            {/* Password Input */}
-            <div>
-              <div className="flex justify-between items-center mb-3 ml-1">
-                <label className="block text-[10px] font-bold uppercase tracking-[0.2em] text-gray-500">Password</label>
-                <span className="text-[10px] text-gray-600">MIN 8 CHARS</span>
-              </div>
-              <input 
-                type="password" 
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="w-full p-4 bg-[#111] border border-white/10 rounded-lg text-white placeholder-gray-600 focus:outline-none focus:border-white focus:bg-black transition-all duration-300" 
-                placeholder="••••••••"
-                required
-              />
-            </div>
-            
-            <button 
-              disabled={isLoading} 
-              className="w-full bg-white text-black py-4 rounded-lg font-black uppercase tracking-widest hover:bg-gray-200 hover:scale-[1.01] active:scale-[0.99] transition-all duration-300 shadow-[0_0_20px_rgba(255,255,255,0.15)] disabled:opacity-50 disabled:cursor-not-allowed mt-4"
-            >
-              {isLoading ? "Processing..." : "Create Account"}
-            </button>
-          </form>
-
-          <div className="mt-10 text-center text-xs tracking-wide text-gray-500">
-            ALREADY A MEMBER?{" "}
-            <Link to="/login" className="font-bold text-white border-b border-white hover:text-gray-300 hover:border-gray-300 transition ml-1">
-              LOG IN
-            </Link>
-          </div>
-
-        </div>
+      {/* Background Decor */}
+      <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none">
+         <div className="absolute top-[-10%] left-[-5%] w-[500px] h-[500px] bg-blue-500/5 rounded-full blur-[100px]"></div>
+         <div className="absolute bottom-[-10%] right-[-5%] w-[500px] h-[500px] bg-red-500/5 rounded-full blur-[100px]"></div>
       </div>
+
+      <motion.div 
+        initial={{ opacity: 0, scale: 0.95 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ duration: 0.4 }}
+        className="w-full max-w-[450px] bg-white rounded-2xl shadow-xl border border-gray-100 p-8 md:p-10 relative z-10"
+      >
+        
+        {/* Header */}
+        <div className="text-center mb-8">
+          <div className="inline-flex items-center justify-center w-12 h-12 bg-black text-white rounded-xl mb-6 shadow-lg transform -rotate-3">
+             <span className="font-black italic text-xl">M</span>
+          </div>
+          <h1 className="text-3xl font-black tracking-tight text-gray-900 mb-2">
+            Create Account
+          </h1>
+          <p className="text-sm text-gray-500 font-medium">
+            Join UrbanMart for exclusive drops.
+          </p>
+        </div>
+
+        {/* API Error Alert */}
+        {apiError && (
+            <motion.div 
+              initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }}
+              className="bg-red-50 border border-red-100 text-red-600 px-4 py-3 rounded-xl flex items-center gap-3 mb-6 text-xs font-bold uppercase tracking-wide"
+            >
+               <AlertCircle size={16} /> {apiError}
+            </motion.div>
+        )}
+
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
+            
+            {/* Name Field */}
+            <div>
+                <label className="block text-xs font-bold uppercase tracking-widest text-gray-500 mb-2 ml-1">
+                  Full Name
+                </label>
+                <div className="relative group">
+                  <input 
+                      type="text" 
+                      {...register("name")}
+                      className={`w-full border-2 text-gray-900 text-sm font-medium rounded-xl px-4 py-3.5 outline-none transition-all placeholder:text-gray-400 
+                        ${errors.name 
+                          ? "bg-red-50 border-red-500 focus:border-red-500" 
+                          : "bg-gray-50 border-gray-100 focus:bg-white focus:border-black"
+                        }`}
+                      placeholder="John Doe"
+                  />
+                </div>
+                {errors.name && (
+                  <p className="text-red-500 text-xs font-bold mt-2 ml-1 flex items-center gap-1">
+                    <AlertCircle size={12} /> {errors.name.message}
+                  </p>
+                )}
+            </div>
+
+            {/* Email Field */}
+            <div>
+                <label className="block text-xs font-bold uppercase tracking-widest text-gray-500 mb-2 ml-1">
+                  Email Address
+                </label>
+                <div className="relative group">
+                  <input 
+                      type="email" 
+                      {...register("email")}
+                      className={`w-full border-2 text-gray-900 text-sm font-medium rounded-xl px-4 py-3.5 outline-none transition-all placeholder:text-gray-400 
+                        ${errors.email 
+                          ? "bg-red-50 border-red-500 focus:border-red-500" 
+                          : "bg-gray-50 border-gray-100 focus:bg-white focus:border-black"
+                        }`}
+                      placeholder="john@example.com"
+                  />
+                </div>
+                {errors.email && (
+                  <p className="text-red-500 text-xs font-bold mt-2 ml-1 flex items-center gap-1">
+                    <AlertCircle size={12} /> {errors.email.message}
+                  </p>
+                )}
+            </div>
+
+            {/* Password Field */}
+            <div>
+                <div className="flex justify-between items-center mb-2 ml-1">
+                   <label className="block text-xs font-bold uppercase tracking-widest text-gray-500">
+                     Password
+                   </label>
+                </div>
+                <div className="relative">
+                    <input 
+                        type={showPassword ? "text" : "password"}
+                        {...register("password")}
+                        className={`w-full border-2 text-gray-900 text-sm font-medium rounded-xl px-4 py-3.5 outline-none transition-all placeholder:text-gray-400 pr-12
+                          ${errors.password 
+                            ? "bg-red-50 border-red-500 focus:border-red-500" 
+                            : "bg-gray-50 border-gray-100 focus:bg-white focus:border-black"
+                          }`}
+                        placeholder="••••••••"
+                    />
+                    <button 
+                        type="button"
+                        onClick={() => setShowPassword(!showPassword)}
+                        className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-black transition-colors"
+                    >
+                        {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                    </button>
+                </div>
+                {errors.password && (
+                  <p className="text-red-500 text-xs font-bold mt-2 ml-1 flex items-center gap-1">
+                    <AlertCircle size={12} /> {errors.password.message}
+                  </p>
+                )}
+            </div>
+
+            {/* Submit Button */}
+            <button 
+                disabled={isLoading}
+                className="w-full bg-[#111] text-white h-12 rounded-xl font-bold uppercase tracking-widest text-xs hover:bg-[#EF4444] hover:shadow-lg hover:shadow-red-500/20 active:scale-[0.98] transition-all duration-300 flex items-center justify-center gap-2 mt-4"
+            >
+                {isLoading ? (
+                  <> <Loader2 size={16} className="animate-spin" /> Creating Account... </>
+                ) : (
+                  <> Sign Up <ArrowRight size={16} /> </>
+                )}
+            </button>
+
+        </form>
+
+        {/* Footer */}
+        <div className="mt-8 pt-6 border-t border-gray-100 text-center">
+            <p className="text-sm text-gray-500 font-medium">
+              Already have an account?{" "}
+              <Link to="/login" className="text-black font-bold hover:text-[#EF4444] hover:underline underline-offset-4 transition-colors">
+                  Log In
+              </Link>
+            </p>
+        </div>
+
+        {/* Back to Home */}
+        <div className="absolute -bottom-16 left-0 w-full text-center">
+           <Link to="/" className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-gray-400 hover:text-black transition-colors">
+              <ArrowLeft size={14} /> Back to Store
+           </Link>
+        </div>
+
+      </motion.div>
     </div>
   );
 };
