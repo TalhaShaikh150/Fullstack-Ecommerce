@@ -1,86 +1,110 @@
 import { Link } from "react-router-dom";
-import { Heart, ShoppingBag, Star } from "lucide-react";
+import { Plus, Check, ShoppingBag } from "lucide-react"; // Added Check icon
 import { useDispatch } from "react-redux";
-// import { addToCart } from "../services/cartSlice; // Ensure this path is correct
+import { addToCart } from "../services/cartSlice";
+import { useState } from "react"; // Added state for animation
+import toast from "react-hot-toast";
 
 const ProductCard = ({ product }) => {
   const dispatch = useDispatch();
-
-  // Logic to handle "Original Price" (If API doesn't have it, we fake a 20% markup for the 'Sale' look)
-  const originalPrice = product.originalPrice || (product.price * 1.2).toFixed(2);
-  const discount = Math.round(((originalPrice - product.price) / originalPrice) * 100);
-
+  const [isAdded, setIsAdded] = useState(false); // State to handle button animation
+  
   const handleAddToCart = (e) => {
-    e.preventDefault(); // Stop Link navigation
+    e.preventDefault();
+    e.stopPropagation();
+    
+    // 1. Redux Action
     dispatch(addToCart(product));
+    
+    // 2. Toast Notification
+    toast.success(`${product.title} added`, {
+        style: {
+            background: '#111',
+            color: '#fff',
+            borderRadius: '10px',
+            fontSize: '12px',
+            fontWeight: 'bold'
+        },
+        iconTheme: {
+            primary: '#EF4444',
+            secondary: '#fff',
+        },
+    });
+
+    // 3. Button Animation (Flip to Checkmark)
+    setIsAdded(true);
+    setTimeout(() => setIsAdded(false), 2000); // Reset after 2 seconds
   };
 
   return (
     <div className="group relative">
-      
-      {/* 1. IMAGE CONTAINER */}
-      <div className="relative aspect-[3/4] w-full overflow-hidden rounded-2xl bg-[#F3F4F6]">
+      {/* IMAGE CONTAINER */}
+      <div className="relative aspect-[3/4] bg-[#F4F4F5] rounded-[1.5rem] overflow-hidden mb-4 border border-transparent group-hover:border-gray-200 transition-all">
         
-        {/* Discount Badge */}
-        <div className="absolute top-3 left-3 z-10 bg-[#EF4444] text-white text-[10px] font-bold px-2 py-1 rounded-md uppercase tracking-wide">
-          -{discount}%
-        </div>
-
-        {/* Wishlist Button (Visible on Hover) */}
-        <button className="absolute top-3 right-3 z-10 bg-white p-2 rounded-full text-gray-400 hover:text-red-500 shadow-sm opacity-0 group-hover:opacity-100 transition-all duration-300 transform translate-y-2 group-hover:translate-y-0">
-          <Heart size={16} />
-        </button>
-
-        {/* Main Image */}
         <Link to={`/product/${product._id}`}>
-          <img
-            src={product.image}
-            alt={product.title}
-            className="h-full w-full object-cover object-center transition-transform duration-700 ease-out group-hover:scale-110"
+          <img 
+            src={product.image} 
+            alt={product.title} 
+            className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" 
           />
         </Link>
-
-        {/* Quick Add Button (Slides up on Hover) */}
-        <div className="absolute bottom-0 left-0 right-0 p-4 translate-y-full group-hover:translate-y-0 transition-transform duration-300 ease-out">
-          <button 
-            onClick={handleAddToCart}
-            className="w-full bg-white text-black py-3 rounded-xl font-bold text-xs uppercase tracking-widest shadow-lg hover:bg-black hover:text-white transition-colors flex items-center justify-center gap-2"
-          >
-            <ShoppingBag size={16} /> Add to Bag
-          </button>
+        
+        {/* Discount Tag */}
+        <div className="absolute top-3 left-3 bg-[#EF4444] text-white text-[10px] font-black px-3 py-1.5 uppercase tracking-widest rounded-full shadow-sm">
+          Sale
         </div>
+
+        {/* --- THE INTERACTIVE BUTTON --- */}
+        <button 
+          onClick={handleAddToCart}
+          disabled={isAdded} // Prevent double clicks while animating
+          className={`absolute bottom-3 right-3 w-12 h-12 flex items-center justify-center rounded-full shadow-xl transition-all duration-300 z-20
+            ${isAdded 
+              ? "bg-green-500 text-white scale-110"  // Success State
+              : "bg-white text-black hover:bg-[#111] hover:text-white hover:scale-110 active:scale-95" // Default State
+            }
+          `}
+        >
+          {/* Animated Icon Swap */}
+          <div className="relative w-6 h-6 flex items-center justify-center">
+             <span className={`absolute transition-all duration-300 ${isAdded ? "opacity-0 rotate-90 scale-0" : "opacity-100 rotate-0 scale-100"}`}>
+                <Plus size={24} strokeWidth={2} />
+             </span>
+             <span className={`absolute transition-all duration-300 ${isAdded ? "opacity-100 rotate-0 scale-100" : "opacity-0 -rotate-90 scale-0"}`}>
+                <Check size={24} strokeWidth={3} />
+             </span>
+          </div>
+        </button>
+
+        {/* Hover Overlay (Optional: Makes text clearer if image is busy) */}
+        <div className="absolute inset-0 bg-black/5 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none"></div>
       </div>
 
-      {/* 2. PRODUCT DETAILS */}
-      <div className="mt-4 space-y-1">
-        
-        {/* Category & Rating */}
-        <div className="flex justify-between items-center">
-          <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">
-            {product.category || "Collection"}
-          </p>
-          <div className="flex items-center gap-1 text-yellow-500 text-[10px] font-bold">
-            <Star size={10} fill="currentColor" /> 4.8
-          </div>
+      {/* TEXT DETAILS */}
+      <div className="px-1">
+        <div className="flex justify-between items-start mb-1">
+           <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">
+             {product.category || "Collection"}
+           </p>
+           {/* Mock Colors */}
+           <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity duration-300 transform translate-y-2 group-hover:translate-y-0">
+              <div className="w-2 h-2 rounded-full bg-black"></div>
+              <div className="w-2 h-2 rounded-full bg-gray-400"></div>
+           </div>
         </div>
 
-        {/* Title */}
         <Link to={`/product/${product._id}`}>
-          <h3 className="text-sm font-bold text-[#111] truncate group-hover:text-[#EF4444] transition-colors">
-            {product.title}
-          </h3>
+           <h3 className="font-display font-bold text-base text-[#111] leading-tight truncate capitalize group-hover:text-[#EF4444] transition-colors">
+             {product.title}
+           </h3>
         </Link>
 
-        {/* Price */}
-        <div className="flex items-center gap-3 pt-1">
-          <span className="text-lg font-black text-[#111]">
-            ${product.price}
-          </span>
-          <span className="text-xs text-gray-400 line-through font-medium">
-            ${originalPrice}
-          </span>
+        <div className="flex items-center gap-3 mt-2">
+           <span className="font-black text-lg text-[#111]">${product.price}</span>
+           <span className="text-xs text-gray-400 line-through font-medium">
+             ${(product.price * 1.2).toFixed(2)}
+           </span>
         </div>
-        
       </div>
     </div>
   );
