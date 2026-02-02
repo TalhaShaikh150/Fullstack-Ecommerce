@@ -1,1 +1,20 @@
 @import "tailwindcss";
+/* 1. Import Premium Fonts */
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Space+Grotesk:wght@300;400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* 2. Apply "Plus Jakarta Sans" to the whole website */
+body {
+  font-family: 'Plus Jakarta Sans', sans-serif !important;
+  background-color: #FFFFFF;
+  color: #111111;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* 3. Create a custom class for the Logo/Headings */
+.font-display {
+  font-family: 'Space Grotesk', sans-serif;
+}

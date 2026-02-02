@@ -62,11 +62,7 @@ const ProductDetails = () => {
               </button>
             </div>
             
-            {/* Stock Indicator */}
-            <div className="mt-6 flex items-center gap-2 text-sm text-gray-500">
-                <div className={`w-2 h-2 rounded-full ${product.stock > 0 ? 'bg-green-500' : 'bg-red-500'}`}></div>
-                {product.stock > 0 ? `${product.stock} in stock` : "Out of Stock"}
-            </div>
+           
           </div>
 
         </div>

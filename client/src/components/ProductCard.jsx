@@ -1,51 +1,86 @@
 import { Link } from "react-router-dom";
-import { ShoppingBag } from "lucide-react";
+import { Heart, ShoppingBag, Star } from "lucide-react";
+import { useDispatch } from "react-redux";
+// import { addToCart } from "../services/cartSlice; // Ensure this path is correct
 
 const ProductCard = ({ product }) => {
+  const dispatch = useDispatch();
+
+  // Logic to handle "Original Price" (If API doesn't have it, we fake a 20% markup for the 'Sale' look)
+  const originalPrice = product.originalPrice || (product.price * 1.2).toFixed(2);
+  const discount = Math.round(((originalPrice - product.price) / originalPrice) * 100);
+
+  const handleAddToCart = (e) => {
+    e.preventDefault(); // Stop Link navigation
+    dispatch(addToCart(product));
+  };
+
   return (
-    <div className="group cursor-pointer">
+    <div className="group relative">
+      
       {/* 1. IMAGE CONTAINER */}
-      <div className="relative overflow-hidden mb-4 bg-[#F0F0F0] aspect-[3/4]">
+      <div className="relative aspect-[3/4] w-full overflow-hidden rounded-2xl bg-[#F3F4F6]">
+        
+        {/* Discount Badge */}
+        <div className="absolute top-3 left-3 z-10 bg-[#EF4444] text-white text-[10px] font-bold px-2 py-1 rounded-md uppercase tracking-wide">
+          -{discount}%
+        </div>
+
+        {/* Wishlist Button (Visible on Hover) */}
+        <button className="absolute top-3 right-3 z-10 bg-white p-2 rounded-full text-gray-400 hover:text-red-500 shadow-sm opacity-0 group-hover:opacity-100 transition-all duration-300 transform translate-y-2 group-hover:translate-y-0">
+          <Heart size={16} />
+        </button>
+
         {/* Main Image */}
         <Link to={`/product/${product._id}`}>
           <img
             src={product.image}
             alt={product.title}
-            className="h-full w-full object-cover object-center group-hover:scale-105 transition-transform duration-700 ease-in-out"
+            className="h-full w-full object-cover object-center transition-transform duration-700 ease-out group-hover:scale-110"
           />
         </Link>
 
-        {/* 'Quick Add' Button - Appears on Hover */}
-        <button 
-          className="absolute bottom-4 right-4 bg-white p-3 rounded-full shadow-sm translate-y-12 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-300 hover:bg-black hover:text-white"
-          title="Add to Cart"
-        >
-          <ShoppingBag size={18} strokeWidth={1.5} />
-        </button>
-        
-        {/* Stock Badge */}
-        {product.stock === 0 && (
-            <span className="absolute top-3 left-3 bg-white/90 backdrop-blur text-[10px] font-bold uppercase tracking-widest px-2 py-1 text-gray-500">
-                Sold Out
-            </span>
-        )}
+        {/* Quick Add Button (Slides up on Hover) */}
+        <div className="absolute bottom-0 left-0 right-0 p-4 translate-y-full group-hover:translate-y-0 transition-transform duration-300 ease-out">
+          <button 
+            onClick={handleAddToCart}
+            className="w-full bg-white text-black py-3 rounded-xl font-bold text-xs uppercase tracking-widest shadow-lg hover:bg-black hover:text-white transition-colors flex items-center justify-center gap-2"
+          >
+            <ShoppingBag size={16} /> Add to Bag
+          </button>
+        </div>
       </div>
 
-      {/* 2. TEXT DETAILS (Minimalist) */}
-      <div className="flex justify-between items-start">
-        <div>
-            <p className="text-[10px] text-gray-500 uppercase tracking-widest mb-1">
-                {product.category}
-            </p>
-            <Link to={`/product/${product._id}`}>
-                <h3 className="text-sm font-medium text-[#1C1C1C] hover:underline decoration-1 underline-offset-4 line-clamp-1">
-                    {product.title}
-                </h3>
-            </Link>
+      {/* 2. PRODUCT DETAILS */}
+      <div className="mt-4 space-y-1">
+        
+        {/* Category & Rating */}
+        <div className="flex justify-between items-center">
+          <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">
+            {product.category || "Collection"}
+          </p>
+          <div className="flex items-center gap-1 text-yellow-500 text-[10px] font-bold">
+            <Star size={10} fill="currentColor" /> 4.8
+          </div>
         </div>
-        <span className="text-sm font-medium text-[#1C1C1C] ml-4">
+
+        {/* Title */}
+        <Link to={`/product/${product._id}`}>
+          <h3 className="text-sm font-bold text-[#111] truncate group-hover:text-[#EF4444] transition-colors">
+            {product.title}
+          </h3>
+        </Link>
+
+        {/* Price */}
+        <div className="flex items-center gap-3 pt-1">
+          <span className="text-lg font-black text-[#111]">
             ${product.price}
-        </span>
+          </span>
+          <span className="text-xs text-gray-400 line-through font-medium">
+            ${originalPrice}
+          </span>
+        </div>
+        
       </div>
     </div>
   );
