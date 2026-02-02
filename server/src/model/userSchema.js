@@ -9,6 +9,8 @@ const userSchema = new Schema(
       minLength: 3,
       trim: true,
       maxLength: 50,
+          set: (value) => value.replace(/\s+/g, " "), 
+
     },
     email: {
       type: String,
@@ -35,6 +37,11 @@ const userSchema = new Schema(
         }
       },
     },
+     role: {
+    type: String,
+    enum: ["user", "admin"], 
+    default: "user",       
+  },
   },
   { collection: "users" },
 );

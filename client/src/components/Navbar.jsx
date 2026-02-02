@@ -178,7 +178,7 @@ const SearchOverlay = ({ isOpen, onClose }) => {
 
 // --- 4. MAIN NAVBAR ---
 const Navbar = () => {
-
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [isCartOpen, setIsCartOpen] = useState(false); 
   const [isSearchOpen, setIsSearchOpen] = useState(false); 
@@ -195,7 +195,7 @@ const Navbar = () => {
       dispatch(logout());
       navigate("/login");
       setIsProfileOpen(false);
-
+      setIsMobileMenuOpen(false);
     } catch (error) {
       console.log(error);
     }
@@ -278,11 +278,13 @@ const Navbar = () => {
                           initial={{ opacity: 0, y: 10, scale: 0.95 }}
                           animate={{ opacity: 1, y: 0, scale: 1 }}
                           exit={{ opacity: 0, y: 10, scale: 0.95 }}
-                          className="absolute right-0 top-12 w-60 bg-white border border-gray-100 shadow-xl rounded-xl p-2 z-[60]"
+                          className="absolute right-0 top-12 w-60 bg-white border
+                           border-gray-100 shadow-xl rounded-xl p-2 z-[60]"
                         >
                           <div className="px-4 py-3 bg-gray-50/80 rounded-lg mb-2">
-                             <p className="text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-1">Signed In As</p>
-                             <p className="text-sm font-bold text-black truncate">{userInfo.name}</p>
+                             <p className="text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-1">Signed In As {userInfo.name}</p>
+                             <p className="text-sm font-bold text-black truncate"></p>
+                             <p className="text-sm font-bold text-black truncate">{userInfo.email}</p>
                           </div>
                           <Link to="/profile" className="flex items-center gap-3 px-4 py-3 text-sm font-bold text-gray-600 hover:text-black hover:bg-gray-50 rounded-lg transition-all"><User size={16} /> My Profile</Link>
                           <button onClick={handleLogout} className="w-full flex items-center gap-3 px-4 py-3 text-sm font-bold text-red-500 hover:bg-red-50 rounded-lg transition-all text-left"><LogOut size={16} /> Sign Out</button>
@@ -304,13 +306,51 @@ const Navbar = () => {
                 )}
               </div>
 
-             
+              {/* Mobile Menu Trigger (Only for Links now) */}
+              <button 
+                onClick={() => setIsMobileMenuOpen(true)}
+                className="md:hidden p-2 text-black hover:bg-gray-100 rounded-full"
+              >
+                <Menu size={24} />
+              </button>
             </div>
           </div>
         </div>
       </header>
 
-     
+      {/* MOBILE DRAWER (LINKS ONLY) */}
+      <AnimatePresence>
+        {isMobileMenuOpen && (
+          <>
+            <motion.div 
+              initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+              onClick={() => setIsMobileMenuOpen(false)} className="fixed inset-0 bg-black/60 z-[60] backdrop-blur-sm"
+            />
+            <motion.div 
+              initial={{ x: "100%" }} animate={{ x: 0 }} exit={{ x: "100%" }}
+              transition={{ type: "tween", duration: 0.3 }}
+              className="fixed top-0 right-0 h-full w-[80%] max-w-xs bg-white z-[70] p-6 shadow-2xl flex flex-col"
+            >
+              <div className="flex justify-between items-center mb-8">
+                <span className="text-xl font-display font-black italic tracking-tighter">MENU</span>
+                <button onClick={() => setIsMobileMenuOpen(false)} className="p-2 bg-gray-100 rounded-full"><X size={20} /></button>
+              </div>
+
+              <div className="flex flex-col space-y-4">
+                {['New Arrivals', 'Men', 'Women', 'Sale'].map(item => (
+                   <Link key={item} to="/" className="text-lg font-bold hover:text-[#EF4444] transition-colors border-b border-gray-50 pb-2">{item}</Link>
+                ))}
+              </div>
+              
+              {/* Extra Mobile Actions */}
+              <div className="mt-auto pt-6">
+                 <Link to="/profile" className="flex items-center gap-2 text-sm font-bold text-gray-500 mb-4"><Heart size={16} /> Wishlist</Link>
+                 <Link to="/" className="flex items-center gap-2 text-sm font-bold text-gray-500"><Truck size={16} /> Order Tracking</Link>
+              </div>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
     </>
   );
 };

@@ -1,22 +1,20 @@
-import { configureStore } from '@reduxjs/toolkit'
-import { productApi } from '../services/product'
-import { userApi } from "../services/users"; // ✅ Import User API
-import authReducer from "../services/authSlice"; // ✅ Import Auth Slice
-import cartReducer from "../services/cartSlice"; // ✅ 1. Import it
+import { configureStore } from '@reduxjs/toolkit';
+import { apiSlice } from '../services/apiSlice'; // ✅ Import the PARENT slice
+import authReducer from "../services/authSlice";
+import cartReducer from "../services/cartSlice";
 
 export const store = configureStore({
   reducer: {
-    [productApi.reducerPath]: productApi.reducer,
-    [userApi.reducerPath]: userApi.reducer, // ✅ Add User API
-    auth: authReducer, // ✅ Add Auth State
-        cart: cartReducer, // ✅ 2. Add it here
-
+    // 1. We only need the Parent API reducer now
+    // It handles Products, Users, and Admin logic all in one place
+    [apiSlice.reducerPath]: apiSlice.reducer,
+    
+    // 2. Client-side state
+    auth: authReducer, 
+    cart: cartReducer, 
   },
 
+  // 3. We only need the Parent API middleware
   middleware: (getDefaultMiddleware) =>
-    getDefaultMiddleware()
-      .concat(productApi.middleware)
-      .concat(userApi.middleware), // ✅ Add Middleware
-
-  
-})
+    getDefaultMiddleware().concat(apiSlice.middleware),
+});

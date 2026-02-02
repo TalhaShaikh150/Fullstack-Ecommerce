@@ -31,7 +31,7 @@ router.post("/signup", async (req, res) => {
 
     //Now Check Is This Email Already Exist In Database
 
-    const { name, email, password } = req.body;
+    const { name, email, password,role } = req.body;
 
     const user = await User.findOne({ email });
 
@@ -47,6 +47,7 @@ router.post("/signup", async (req, res) => {
       name,
       email,
       password: hashedPassword,
+      role
     });
 
     await newUser.save();

@@ -100,8 +100,7 @@ const HeroBento = () => {
            {/* Image */}
            <img 
              src="https://images.unsplash.com/photo-1523275335684-37898b6baf30?q=80&w=600&auto=format&fit=crop" 
-             className="absolute -right-4 -bottom-8 w-32 md:w-40 object-cover
-              rotate-12 group-hover:rotate-6 group-hover:scale-110 transition-all duration-500 ease-out" 
+             className="absolute -right-4 -bottom-8 w-32 md:w-40 object-contain rotate-12 group-hover:rotate-6 group-hover:scale-110 transition-all duration-500 ease-out" 
              alt="Watch"
            />
         </motion.div>

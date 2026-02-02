@@ -1,18 +1,45 @@
-import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
+import { apiSlice } from "./apiSlice"; // Import the parent
 
-export const productApi = createApi({
-  reducerPath: "productApi",
-  baseQuery: fetchBaseQuery({ baseUrl: `http://localhost:${import.meta.env.VITE_API_URL}`}),
-credentials: 'include',
+export const productsApiSlice = apiSlice.injectEndpoints({
   endpoints: (builder) => ({
+    
+    // 1. GET ALL PRODUCTS
     getProducts: builder.query({
       query: () => "/api/products",
+      providesTags: ["Product"], // Keep track of this list
     }),
+
+    // 2. GET SINGLE PRODUCT
     getSingleProduct: builder.query({
-        query: (id) => `/api/products/${id}`,
+      query: (id) => `/api/products/${id}`,
     }),
-    
-}),
+
+    // 3. ADD PRODUCT (Admin)
+    createProduct: builder.mutation({
+      query: (data) => ({
+        url: "/api/products/addproduct",
+        method: "POST",
+        body: data,
+      }),
+      invalidatesTags: ["Product"], // 👈 Auto-refetches the list after adding
+    }),
+
+    // 4. DELETE PRODUCT (Admin)
+    deleteProduct: builder.mutation({
+      query: (id) => ({
+        url: `/api/products/${id}`,
+        method: "DELETE",
+      }),
+      invalidatesTags: ["Product"], // 👈 Auto-refetches the list after deleting
+    }),
+
+  }),
 });
 
-export const { useGetProductsQuery ,useGetSingleProductQuery} = productApi;
+// Export Hooks
+export const {
+  useGetProductsQuery,
+  useGetSingleProductQuery,
+  useCreateProductMutation,
+  useDeleteProductMutation,
+} = productsApiSlice;
