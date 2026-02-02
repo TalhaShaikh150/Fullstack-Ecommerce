@@ -28,7 +28,14 @@ const AuthMiddleWare = async (req, res,next) => {
       .send({ message: "Unauthorized", error: error.message });
   }
 };
-
+// 2. Admin Middleware (Checks if role is 'admin')
+const AdminMiddleWare = (req, res, next) => {
+  if (req.user && req.user.role === "admin") {
+    next();
+  } else {
+    res.status(403).json({ message: "Not authorized as Admin" });
+  }
+};
 module.exports = {
-  AuthMiddleWare
+  AuthMiddleWare,AdminMiddleWare
 }

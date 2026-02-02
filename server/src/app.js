@@ -2,8 +2,8 @@ const express = require("express");
 const dotenv = require("dotenv");
 const authRouter = require("./routes/auth"); 
 const productRouter = require("./routes/products")
+const userRouter = require('./routes/users'); // Import
 const cors = require("cors")
-
 
 dotenv.config();
 
@@ -32,6 +32,7 @@ app.use("/api/auth", authRouter);
 
 app.use("/api/products",productRouter)
 
+app.use('/api/users', userRouter); // Register
 
 app.get("/", (req, res) => {
   res.send("Api Is Working!");

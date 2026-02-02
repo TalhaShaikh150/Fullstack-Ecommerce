@@ -42,6 +42,24 @@ export const userApiSlice = apiSlice.injectEndpoints({
       providesTags: ["User"],
     }),
 
+      // ✅ ADD THIS: Fetch All Users (Admin Only)
+    getUsers: builder.query({
+      query: () => ({
+        url: "/api/users", // Make sure this matches your backend route
+        method: "GET",
+      }),
+      providesTags: ["User"],
+    }),
+
+    // ✅ ADD THIS: Delete User (Admin Only)
+    deleteUser: builder.mutation({
+      query: (id) => ({
+        url: `/api/users/${id}`,
+        method: "DELETE",
+      }),
+      invalidatesTags: ["User"],
+    }),
+
   }),
 });
 
@@ -49,5 +67,7 @@ export const {
   useLoginMutation, 
   useSignupMutation, 
   useLogoutApiMutation, 
-  useGetProfileQuery 
+  useGetProfileQuery ,
+    useGetUsersQuery,   // ✅ New
+  useDeleteUserMutation // ✅ New
 } = userApiSlice;

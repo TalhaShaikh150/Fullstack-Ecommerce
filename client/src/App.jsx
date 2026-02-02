@@ -7,13 +7,15 @@ import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
 import Preloader from "./components/Preloader";
 import PageTransition from "./components/PageTransition";
-import AdminRoute from "./components/AdminRoute"; // ✅ Import this
+import AdminRoute from "./components/AdminRoute";
 
 // Admin Pages
-import AdminLayout from "./pages/admin/AdminLayout"; // ✅ Import this
-import ProductList from "./pages/admin/ProductList"; // ✅ Import this
-import AddProduct from "./pages/admin/AddProduct";   // ✅ Import this
-
+import AdminLayout from "./pages/admin/AdminLayout"; 
+import ProductList from "./pages/admin/ProductList"; 
+import AddProduct from "./pages/admin/AddProduct";   
+import AdminDashboard from "./pages/admin/AdminDashboard";
+import EditProduct from "./pages/admin/EditProduct";
+import UserList from "./pages/admin/UserList";
 // Public Pages
 import Home from "./pages/Home";
 import ProductDetails from "./pages/ProductDetails";
@@ -30,21 +32,18 @@ const ScrollToTop = () => {
 };
 
 // --- LAYOUT WRAPPER (The Fix) ---
-// This component decides: "Am I on an Admin page? If yes, hide Navbar/Footer."
 const LayoutWrapper = ({ children }) => {
   const location = useLocation();
   const isAdmin = location.pathname.startsWith("/admin");
 
   return (
     <>
-      {/* Hide Navbar on Admin pages */}
       {!isAdmin && <Navbar />}
       
       <div className={isAdmin ? "" : "min-h-screen flex flex-col justify-between"}>
         {children}
       </div>
 
-      {/* Hide Footer on Admin pages */}
       {!isAdmin && <Footer />}
     </>
   );
@@ -57,16 +56,25 @@ const AnimatedRoutes = () => {
     <AnimatePresence mode="wait">
       <Routes location={location} key={location.pathname}>
         
-        {/* === ADMIN ROUTES (Protected) === */}
         {/* We do NOT wrap these in PageTransition because Admin panel needs to be fast/static */}
-        <Route element={<AdminRoute />}>
-          <Route path="/admin" element={<AdminLayout />}>
-            <Route index element={<Navigate to="/admin/products" replace />} />
-            <Route path="products" element={<ProductList />} />
-            <Route path="product/add" element={<AddProduct />} />
-          </Route>
-        </Route>
+   
 
+<Route element={<AdminRoute />}>
+  <Route path="/admin" element={<AdminLayout />}>
+    
+    {/* 1. DASHBOARD (Index) - No more redirect, shows stats now */}
+    <Route index element={<AdminDashboard />} />
+
+    {/* 2. PRODUCT MANAGEMENT */}
+    <Route path="products" element={<ProductList />} />
+    <Route path="product/add" element={<AddProduct />} />
+    <Route path="product/edit/:id" element={<EditProduct />} /> {/* ✅ Edit Route */}
+
+    {/* 3. USER MANAGEMENT */}
+    <Route path="users" element={<UserList />} /> {/* ✅ Users Route */}
+
+  </Route>
+</Route>
         {/* === PUBLIC ROUTES (With Animations) === */}
         <Route path="/" element={<PageTransition><Home /></PageTransition>} />
         <Route path="/product/:id" element={<PageTransition><ProductDetails /></PageTransition>} />
